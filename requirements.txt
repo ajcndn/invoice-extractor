@@ -1,5 +1,8 @@
 streamlit
 PyPDF2
 openai
-python-dotenv
-Pillow
+pillow
+google-cloud-vision
+google-auth
+google-auth-oauthlib
+google-auth-httplib2
