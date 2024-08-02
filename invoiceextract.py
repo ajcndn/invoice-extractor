@@ -86,16 +86,13 @@ def extract_invoice_data(text):
     Invoice Text:
     {text}
     """
-    response = openai.ChatCompletion.create(
+    response = openai.Completion.create(
         model="gpt-4",  # Use the correct model name
-        messages=[
-            {"role": "system", "content": "You are a helpful assistant specialized in extracting structured information from unstructured text."},
-            {"role": "user", "content": prompt}
-        ],
+        prompt=prompt,
         max_tokens=500,
         temperature=0.5
     )
-    return response['choices'][0]['message']['content'].strip()
+    return response['choices'][0]['text'].strip()
 
 def main():
     st.title("Invoice Data Extractor")
