@@ -4,10 +4,28 @@ import json
 import openai
 import os
 import re
-import pytesseract
+from google.cloud import vision
+from google.oauth2 import service_account
 from PIL import Image
 import xml.etree.ElementTree as ET
 import time
+
+# Set up Google Cloud Vision client using Streamlit secrets
+credentials_dict = {
+    "type": st.secrets["gcp_service_account"]["type"],
+    "project_id": st.secrets["gcp_service_account"]["project_id"],
+    "private_key_id": st.secrets["gcp_service_account"]["private_key_id"],
+    "private_key": st.secrets["gcp_service_account"]["private_key"],
+    "client_email": st.secrets["gcp_service_account"]["client_email"],
+    "client_id": st.secrets["gcp_service_account"]["client_id"],
+    "auth_uri": st.secrets["gcp_service_account"]["auth_uri"],
+    "token_uri": st.secrets["gcp_service_account"]["token_uri"],
+    "auth_provider_x509_cert_url": st.secrets["gcp_service_account"]["auth_provider_x509_cert_url"],
+    "client_x509_cert_url": st.secrets["gcp_service_account"]["client_x509_cert_url"]
+}
+
+credentials = service_account.Credentials.from_service_account_info(credentials_dict)
+client = vision.ImageAnnotatorClient(credentials=credentials)
 
 # Retrieve the OpenAI API key from the environment
 openai_api_key = os.getenv('OPENAI_API_KEY')
@@ -28,8 +46,16 @@ def extract_text_from_pdf(file):
 
 def extract_text_from_image(file):
     image = Image.open(file)
-    text = pytesseract.image_to_string(image)
-    return text
+    with open("temp_image.png", "wb") as f:
+        image.save(f, format="PNG")
+    with open("temp_image.png", "rb") as image_file:
+        content = image_file.read()
+    image = vision.Image(content=content)
+    response = client.text_detection(image=image)
+    texts = response.text_annotations
+    if response.error.message:
+        raise Exception(f'{response.error.message}')
+    return texts[0].description if texts else ""
 
 def extract_text_from_xml(file):
     tree = ET.parse(file)
