@@ -1,7 +1,6 @@
 import streamlit as st
 import PyPDF2
 import json
-import openai
 import os
 import re
 from google.cloud import vision
@@ -9,6 +8,7 @@ from google.oauth2 import service_account
 from PIL import Image
 import xml.etree.ElementTree as ET
 import time
+from openai import OpenAI
 
 # Set up Google Cloud Vision client using Streamlit secrets
 credentials_dict = {
@@ -25,11 +25,11 @@ credentials_dict = {
 }
 
 credentials = service_account.Credentials.from_service_account_info(credentials_dict)
-client = vision.ImageAnnotatorClient(credentials=credentials)
+vision_client = vision.ImageAnnotatorClient(credentials=credentials)
 
-# Retrieve the OpenAI API key from Streamlit secrets
+# Retrieve the OpenAI API key from Streamlit secrets and initialize the client
 openai_api_key = st.secrets["OPENAI_API_KEY"]
-openai.api_key = openai_api_key
+openai_client = OpenAI(api_key=openai_api_key)
 
 # Set the page title
 st.set_page_config(page_title="Invoice Extract")
@@ -48,7 +48,7 @@ def extract_text_from_image(file):
     with open("temp_image.png", "rb") as image_file:
         content = image_file.read()
     image = vision.Image(content=content)
-    response = client.text_detection(image=image)
+    response = vision_client.text_detection(image=image)
     texts = response.text_annotations
     if response.error.message:
         raise Exception(f'{response.error.message}')
@@ -86,13 +86,16 @@ def extract_invoice_data(text):
     Invoice Text:
     {text}
     """
-    response = openai.Completion.create(
-        model="gpt-4",  # Use the correct model name
-        prompt=prompt,
+    response = openai_client.chat.completions.create(
+        model="gpt-4",  # Make sure you have access to GPT-4
+        messages=[
+            {"role": "system", "content": "You are a helpful assistant that extracts invoice data."},
+            {"role": "user", "content": prompt}
+        ],
         max_tokens=500,
         temperature=0.5
     )
-    return response['choices'][0]['text'].strip()
+    return response.choices[0].message.content.strip()
 
 def main():
     st.title("Invoice Data Extractor")
