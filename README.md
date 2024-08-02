@@ -1,3 +1,5 @@
+## UPDATE: Google Vision API is required. Tesseract is no longer used. 
+
 # Invoice Data Extractor
 Invoice Extractor is a simple web application built using Streamlit that allows users to upload invoices in various formats (PDF, XML, TIF, PNG, JPEG) and receive the extracted data in JSON format.
 
