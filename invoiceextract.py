@@ -2,7 +2,6 @@ import streamlit as st
 import PyPDF2
 import json
 import openai
-from dotenv import load_dotenv
 import os
 import re
 import pytesseract
@@ -10,15 +9,12 @@ from PIL import Image
 import xml.etree.ElementTree as ET
 import time
 
-# Load environment variables from .env file
-load_dotenv()
-
 # Retrieve the OpenAI API key from the environment
 openai_api_key = os.getenv('OPENAI_API_KEY')
 if openai_api_key:
     openai.api_key = openai_api_key
 else:
-    st.error("OpenAI API key not found. Please set it in the .env file.")
+    st.error("OpenAI API key not found. Please set it in the secrets.")
 
 # Set the page title
 st.set_page_config(page_title="Invoice Extract")
@@ -68,7 +64,7 @@ def extract_invoice_data(text):
     {text}
     """
     response = openai.ChatCompletion.create(
-        model="gpt-4o",  # Use the correct model name
+        model="gpt-4",  # Use the correct model name
         messages=[
             {"role": "system", "content": "You are a helpful assistant specialized in extracting structured information from unstructured text."},
             {"role": "user", "content": prompt}
