@@ -2,5 +2,4 @@ streamlit
 PyPDF2
 openai
 python-dotenv
-pytesseract
 Pillow

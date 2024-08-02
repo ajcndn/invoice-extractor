@@ -27,12 +27,9 @@ credentials_dict = {
 credentials = service_account.Credentials.from_service_account_info(credentials_dict)
 client = vision.ImageAnnotatorClient(credentials=credentials)
 
-# Retrieve the OpenAI API key from the environment
-openai_api_key = os.getenv('OPENAI_API_KEY')
-if openai_api_key:
-    openai.api_key = openai_api_key
-else:
-    st.error("OpenAI API key not found. Please set it in the secrets.")
+# Retrieve the OpenAI API key from Streamlit secrets
+openai_api_key = st.secrets["OPENAI_API_KEY"]
+openai.api_key = openai_api_key
 
 # Set the page title
 st.set_page_config(page_title="Invoice Extract")
